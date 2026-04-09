@@ -42,7 +42,9 @@ await Promise.all([
 console.log("🐰 ✅ Bundles successfully generated !");
 console.log("🐰 🎓 Generating Type Definitions...");
 // We force --noEmit to false ==> override the config file
-await $`bun x tsc  --project tsconfig.json --noEmit false`;
+// tsconfig.build.json extends tsconfig.json but enables declaration emit.
+// This avoids the --noEmit false CLI override hack.
+await $`bun x tsc --project tsconfig.build.json`;
 const dtsPath = `${outputDir}/index.d.ts`;
 const targetDtsPath = `${outputDir}/${fileName}.d.ts`;
 const typesToPrune = [

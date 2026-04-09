@@ -20,15 +20,13 @@
     }
   },
   "scripts": {
-    "build": "bun run build.ts",
-    "build2": "bun build src/index.ts --production --outfile=out.js",
-    "dev": "bun index.html ",
-    "docs": "bun x typedoc --options typedoc.json",
-    "lint": "eslint src --ext .ts",
-    "prepublishOnly": "bun run build",
-    "test": "bun test",
-    "test:watch": "bun test --watch",
-    "format": "prettier --write ."
+    "dev":          "bun index.html",
+    "build":        "bun run build.ts",
+    "check":        "bun x tsc --noEmit",
+    "test":         "bun test",
+    "test:watch":   "bun test --watch",
+    "format":       "prettier --write .",
+    "docs":         "bun x typedoc --options typedoc.json"
   },
   "keywords": [
     "html",

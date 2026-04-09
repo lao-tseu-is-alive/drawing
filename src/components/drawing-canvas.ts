@@ -1,11 +1,11 @@
 import { LitElement, html, css, svg } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, state } from 'lit/decorators.js';
 
 // @customElement('drawing-canvas') registers this class as a native Web Component.
 // Think of it as the Lit equivalent of Vue's defineComponent() + app.component() in one step.
 // The tag name MUST contain a hyphen (Web Components spec requirement).
 @customElement('drawing-canvas')
-export class Drawing extends LitElement {
+export class DrawingCanvas extends LitElement {
   // @state() marks a private reactive property — equivalent to a ref() or reactive() field in Vue 3
   // (or data() in Vue 2). Lit will re-render only the parts of the template that depend on it
   // whenever it changes, without diffing the whole tree.
@@ -16,7 +16,7 @@ export class Drawing extends LitElement {
   // static styles is the Lit equivalent of a Vue <style scoped> block.
   // Styles are injected into the component's Shadow DOM, so they are fully isolated:
   // they cannot leak out to the page, and global styles cannot bleed in (unless you use CSS custom properties).
-  // css`` is a tagged template literal that Lit uses to parse and adopt styles efficiently.
+  // css (tagged template) is used by Lit to parse and adopt styles efficiently.
   // :host targets the custom element itself, like targeting the root element in Vue with :deep(:root) or just writing
   // styles on the component's outermost element.
   static override styles = css`

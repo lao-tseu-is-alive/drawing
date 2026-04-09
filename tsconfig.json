@@ -9,17 +9,18 @@
     "target": "ESNext",
     "module": "Preserve",
     "moduleDetection": "force",
-    "jsx": "react-jsx",
     "allowJs": true,
     "rootDir": "src",
     "outDir": "./dist",
-    "emitDeclarationOnly": true,
-    "declaration": true,      /* Generates corresponding '.d.ts' file. */
+
     // Bundler mode
     "types": ["bun"],
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
+
+    // noEmit: true for IDE type-checking only.
+    // Declaration emit is handled by tsconfig.build.json, used exclusively in build.ts.
     "noEmit": true,
 
     // Best practices
@@ -33,7 +34,10 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false,
-    // added for Lit use
+
+    // Required for Lit decorators (@customElement, @state, @property).
+    // useDefineForClassFields: false is critical — without it, TypeScript's class field
+    // initialisation overwrites the decorator-applied property descriptors that Lit relies on.
     "experimentalDecorators": true,
     "useDefineForClassFields": false
   },

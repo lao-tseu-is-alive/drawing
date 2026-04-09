@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SVG drawing lab</title>
   <style>
     body {
       font-family: sans-serif;
       max-width: 800px;
       margin: 2rem auto;
+      padding: 0 1rem;
     }
   </style>
 </head>
@@ -16,9 +18,18 @@
 <body>
   <h1>Testing reactivity with SVG</h1>
 
-  <drawing-canvas></drawing-canvas>
+  <!--
+    <drawing-app> is the single composition root — equivalent to <div id="app"> in a Vue project.
+    Adding or removing components never requires touching this file.
+    All wiring happens inside src/components/drawing-app.ts.
+  -->
+  <drawing-app></drawing-app>
 
-  <script type="module" src="/dist/drawing.js"></script>
+  <!--
+    In dev (bun run dev): Bun resolves and transpiles src/index.ts on the fly.
+    In production (bun run build): build.ts produces library bundles in dist/.
+  -->
+  <script type="module" src="/src/index.ts"></script>
 </body>
 
 </html>

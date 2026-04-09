@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Override noEmit so tsc actually writes output.
+    // This file is only used by build.ts for generating .d.ts declaration files.
+    // Run with: bun x tsc --project tsconfig.build.json
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+
+    // allowImportingTsExtensions is incompatible with emit — must be disabled here.
+    "allowImportingTsExtensions": false
+  }
+}
