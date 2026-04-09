@@ -1,0 +1,56 @@
+{
+  "name": "drawing",
+  "version": "0.0.1",
+  "description": "A basic user interface with bun & lit to test simple-2d-geometry ",
+  "private": false,
+  "type": "module",
+  "files": [
+    "/dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./dist/drawing.umd.cjs",
+  "module": "./dist/drawing.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/drawing.js",
+      "require": "./dist/drawing.umd.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "bun run build.ts",
+    "build2": "bun build src/index.ts --production --outfile=out.js",
+    "dev": "bun index.html ",
+    "docs": "bun x typedoc --options typedoc.json",
+    "lint": "eslint src --ext .ts",
+    "prepublishOnly": "bun run build",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "format": "prettier --write ."
+  },
+  "keywords": [
+    "html",
+    "dom",
+    "utils",
+    "typescript"
+  ],
+  "author": "CGil<lao.tseu.is.alive@gmail.com>",
+  "license": "GNU General Public License v3.0",
+  "url": "https://github.com/lao-tseu-is-alive/drawing/issues",
+  "homepage": "https://github.com/lao-tseu-is-alive/drawing#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lao-tseu-is-alive/drawing.git"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "lit": "^3.3.2"
+  }
+}
