@@ -13,5 +13,7 @@
 //   index.html and this file are the only two files you never have to change for new components —
 //   only drawing-app.ts and index.ts.
 
-export * from './components/drawing-canvas.js';
-export * from './components/drawing-app.js';
+export * from './components/drawing-toolbar.js';
+export * from './components/drawing-board.js';
+export * from './components/drawing-store.js';
+export * from './components/app.js';

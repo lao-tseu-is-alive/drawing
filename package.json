@@ -20,13 +20,13 @@
     }
   },
   "scripts": {
-    "dev":          "bun index.html",
-    "build":        "bun run build.ts",
-    "check":        "bun x tsc --noEmit",
-    "test":         "bun test",
-    "test:watch":   "bun test --watch",
-    "format":       "prettier --write .",
-    "docs":         "bun x typedoc --options typedoc.json"
+    "dev": "bun index.html",
+    "build": "bun run build.ts",
+    "check": "bun x tsc --noEmit",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "format": "prettier --write .",
+    "docs": "bun x typedoc --options typedoc.json"
   },
   "keywords": [
     "html",
@@ -46,9 +46,10 @@
     "@types/bun": "latest"
   },
   "peerDependencies": {
-    "typescript": "^5"
+    "typescript": "^6.0.2"
   },
   "dependencies": {
-    "lit": "^3.3.2"
+    "lit": "^3.3.2",
+    "ts-simple-2d-geometry": "^0.1.2"
   }
 }

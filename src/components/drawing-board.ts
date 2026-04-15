@@ -1,0 +1,279 @@
+import { LitElement, css, html, svg } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
+import { Circle, Line, Point } from 'ts-simple-2d-geometry';
+import type { Drawable, Tool } from './drawing-types';
+
+@customElement('drawing-board')
+export class CgilDrawBoard extends LitElement {
+    @property({ attribute: false })
+    items: Drawable[] = [];
+
+    @property({ type: String })
+    tool: Tool = 'select';
+
+    @property({ type: String })
+    selectedId: string | null = null;
+
+    @property({ attribute: false })
+    draftStart: Point | null = null;
+
+    @property({ attribute: false })
+    draftCurrent: Point | null = null;
+
+    @property({ type: Number })
+    width = 100;
+
+    @property({ type: Number })
+    height = 100;
+
+    @state()
+    private pointerCapturedId: string | null = null;
+
+    static override styles = css`
+    :host {
+      display: block;
+    }
+
+    .frame {
+      border: 1px solid #ccc;
+      display: inline-block;
+      background: white;
+    }
+
+    svg {
+      width: 900px;
+      height: 600px;
+      display: block;
+      cursor: crosshair;
+      touch-action: none;
+      background:
+        linear-gradient(to right, #f3f3f3 1px, transparent 1px),
+        linear-gradient(to bottom, #f3f3f3 1px, transparent 1px);
+      background-size: 10% 10%;
+    }
+
+    .selected {
+      filter: drop-shadow(0 0 0.4px #000);
+    }
+
+    .draft {
+      stroke-dasharray: 1 1;
+    }
+  `;
+
+    private emit<T>(name: string, detail: T): void {
+        this.dispatchEvent(new CustomEvent<T>(name, {
+            detail,
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    private screenToWorld(clientX: number, clientY: number): Point | null {
+        const svgEl = this.renderRoot.querySelector('svg');
+        if (!svgEl) return null;
+
+        const pt = svgEl.createSVGPoint();
+        pt.x = clientX;
+        pt.y = clientY;
+
+        const ctm = svgEl.getScreenCTM();
+        if (!ctm) return null;
+
+        const p = pt.matrixTransform(ctm.inverse());
+        return new Point(p.x, p.y);
+    }
+
+    private onBoardClick(e: MouseEvent): void {
+        const target = e.target as Element | null;
+        const world = this.screenToWorld(e.clientX, e.clientY);
+        if (!world) return;
+
+        if (target?.closest('[data-item-id]')) return;
+
+        if (this.tool === 'point') {
+            this.emit('board-add-point', { point: world });
+            return;
+        }
+
+        if (this.tool === 'line' || this.tool === 'circle') {
+            if (!this.draftStart) {
+                this.emit('board-begin-draft', { point: world });
+            } else {
+                this.emit('board-commit-draft', {});
+            }
+            return;
+        }
+
+        if (this.tool === 'select') {
+            this.emit('board-select-none', {});
+        }
+    }
+
+    private onBoardPointerMove(e: PointerEvent): void {
+        const world = this.screenToWorld(e.clientX, e.clientY);
+        if (!world) return;
+
+        if (this.pointerCapturedId) {
+            this.emit('board-move-selected-to', { point: world });
+            return;
+        }
+
+        if ((this.tool === 'line' || this.tool === 'circle') && this.draftStart) {
+            this.emit('board-update-draft', { point: world });
+        }
+    }
+
+    private onPointerUp(): void {
+        if (this.pointerCapturedId) {
+            this.pointerCapturedId = null;
+            this.emit('board-stop-dragging', {});
+        }
+    }
+
+    private onItemClick(item: Drawable, e: MouseEvent): void {
+        e.stopPropagation();
+
+        if (this.tool === 'delete') {
+            this.emit('board-delete-item', { id: item.id });
+            return;
+        }
+
+        this.emit('board-select-item', { id: item.id });
+    }
+
+    private onItemPointerDown(item: Drawable, e: PointerEvent): void {
+        if (this.tool !== 'select') return;
+        e.stopPropagation();
+
+        const target = e.currentTarget as SVGElement;
+        target.setPointerCapture(e.pointerId);
+        this.pointerCapturedId = item.id;
+        this.emit('board-start-dragging', { id: item.id });
+    }
+
+    private renderPoint(item: Extract<Drawable, { kind: 'point' }>) {
+        const p = item.geometry;
+        const selected = this.selectedId === item.id;
+
+        return svg`
+      <circle
+        data-item-id=${item.id}
+        class=${selected ? 'selected' : ''}
+        cx=${p.x}
+        cy=${p.y}
+        r=${item.style.pointRadius}
+        stroke=${item.style.stroke}
+        stroke-width=${0.3}
+        fill=${item.style.fill}
+        @click=${(e: MouseEvent) => this.onItemClick(item, e)}
+        @pointerdown=${(e: PointerEvent) => this.onItemPointerDown(item, e)}
+      ></circle>
+    `;
+    }
+
+    private renderLine(item: Extract<Drawable, { kind: 'line' }>) {
+        const l = item.geometry;
+        const selected = this.selectedId === item.id;
+
+        return svg`
+      <line
+        data-item-id=${item.id}
+        class=${selected ? 'selected' : ''}
+        x1=${l.start.x}
+        y1=${l.start.y}
+        x2=${l.end.x}
+        y2=${l.end.y}
+        stroke=${item.style.stroke}
+        stroke-width=${item.style.strokeWidth}
+        @click=${(e: MouseEvent) => this.onItemClick(item, e)}
+        @pointerdown=${(e: PointerEvent) => this.onItemPointerDown(item, e)}
+      ></line>
+    `;
+    }
+
+    private renderCircle(item: Extract<Drawable, { kind: 'circle' }>) {
+        const c = item.geometry;
+        const selected = this.selectedId === item.id;
+
+        return svg`
+      <circle
+        data-item-id=${item.id}
+        class=${selected ? 'selected' : ''}
+        cx=${c.center.x}
+        cy=${c.center.y}
+        r=${c.radius}
+        stroke=${item.style.stroke}
+        stroke-width=${item.style.strokeWidth}
+        fill=${item.style.fill}
+        @click=${(e: MouseEvent) => this.onItemClick(item, e)}
+        @pointerdown=${(e: PointerEvent) => this.onItemPointerDown(item, e)}
+      ></circle>
+    `;
+    }
+
+    private renderDraft() {
+        if (!this.draftStart || !this.draftCurrent) return null;
+
+        if (this.tool === 'line') {
+            return svg`
+        <line
+          class="draft"
+          x1=${this.draftStart.x}
+          y1=${this.draftStart.y}
+          x2=${this.draftCurrent.x}
+          y2=${this.draftCurrent.y}
+          stroke="#555"
+          stroke-width="0.6"
+        ></line>
+      `;
+        }
+
+        if (this.tool === 'circle') {
+            const preview = new Circle(
+                this.draftStart.clone(),
+                this.draftStart.distanceTo(this.draftCurrent),
+            );
+
+            return svg`
+        <circle
+          class="draft"
+          cx=${preview.center.x}
+          cy=${preview.center.y}
+          r=${preview.radius}
+          stroke="#555"
+          stroke-width="0.6"
+          fill="rgba(0,0,0,0.04)"
+        ></circle>
+      `;
+        }
+
+        return null;
+    }
+
+    override render() {
+        return html`
+      <div class="frame">
+        <svg
+          viewBox="0 0 ${this.width} ${this.height}"
+          @click=${this.onBoardClick}
+          @pointermove=${this.onBoardPointerMove}
+          @pointerup=${this.onPointerUp}
+          @pointercancel=${this.onPointerUp}
+        >
+          ${this.items.map((item) => {
+            switch (item.kind) {
+                case 'point':
+                    return this.renderPoint(item);
+                case 'line':
+                    return this.renderLine(item);
+                case 'circle':
+                    return this.renderCircle(item);
+            }
+        })}
+          ${this.renderDraft()}
+        </svg>
+      </div>
+    `;
+    }
+}
