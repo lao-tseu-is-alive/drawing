@@ -1,6 +1,6 @@
 {
   "name": "drawing",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A basic user interface with bun & lit to test simple-2d-geometry ",
   "private": false,
   "type": "module",

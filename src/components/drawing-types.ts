@@ -37,12 +37,15 @@ export interface DraftState {
     current: Point | null;
 }
 
+export type PointRole = 'start' | 'end' | 'center' | 'radius' | 'all';
+
 export interface DrawState {
     items: Drawable[];
     selectedId: string | null;
     tool: Tool;
     draft: DraftState;
     draggingId: string | null;
+    draggingPointRole: PointRole | null;
     gridSize: number;
     showGrid: boolean;
     snapToGrid: boolean;
@@ -53,6 +56,13 @@ export const DEFAULT_STYLE: Style = {
     fill: 'rgba(25,118,210,0.15)',
     strokeWidth: 1,
     pointRadius: 1.2,
+};
+
+export const POINT_EDIT_STYLE = {
+    fill: 'rgba(128,128,128,0.5)',
+    stroke: 'black',
+    strokeWidth: 0.1,
+    size: 3,
 };
 
 export function makeId(): string {

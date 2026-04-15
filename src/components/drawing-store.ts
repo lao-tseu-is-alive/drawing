@@ -1,5 +1,5 @@
 import { Circle, Line, Point } from 'ts-simple-2d-geometry';
-import type { DrawState, Drawable, Tool } from './drawing-types';
+import type {DrawState, Drawable, Tool, PointRole} from './drawing-types';
 import { DEFAULT_STYLE, makeId } from './drawing-types';
 import { log } from '../utils/logger.js';
 
@@ -36,6 +36,7 @@ export class DrawStore {
             current: null,
         },
         draggingId: null,
+        draggingPointRole: null,
         gridSize: 10,
         showGrid: true,
         snapToGrid: true,
@@ -61,6 +62,7 @@ export class DrawStore {
             tool,
             draft: { start: null, current: null },
             draggingId: null,
+            draggingPointRole: null,
         };
         this.notify();
     }
@@ -177,19 +179,20 @@ export class DrawStore {
         this.notify();
     }
 
-    startDragging(id: string): void {
-        this._state = { ...this._state, draggingId: id, selectedId: id };
+    startDragging(id: string, role: PointRole = 'all'): void {
+        this._state = { ...this._state, draggingId: id, draggingPointRole: role, selectedId: id };
         this.notify();
     }
 
     stopDragging(): void {
-        this._state = { ...this._state, draggingId: null };
+        this._state = { ...this._state, draggingId: null, draggingPointRole: null };
         this.notify();
     }
 
     moveSelectedTo(x: number, y: number): void {
         const id = this._state.draggingId;
-        if (!id) return;
+        const role = this._state.draggingPointRole;
+        if (!id || !role) return;
 
         const items = this._state.items.map((item) => {
             if (item.id !== id) return item;
@@ -197,13 +200,25 @@ export class DrawStore {
             if (item.kind === 'point') {
                 item.geometry.moveTo(x, y);
             } else if (item.kind === 'line') {
-                const [x1, y1] = item.geometry.start.toArray();
-                const dx = x - x1;
-                const dy = y - y1;
-                item.geometry.start.moveRel(dx, dy);
-                item.geometry.end.moveRel(dx, dy);
+                if (role === 'start') {
+                    item.geometry.start.moveTo(x, y);
+                } else if (role === 'end') {
+                    item.geometry.end.moveTo(x, y);
+                } else {
+                    const [x1, y1] = item.geometry.start.toArray();
+                    const dx = x - x1;
+                    const dy = y - y1;
+                    item.geometry.start.moveRel(dx, dy);
+                    item.geometry.end.moveRel(dx, dy);
+                }
             } else if (item.kind === 'circle') {
-                item.geometry.center.moveTo(x, y);
+                if (role === 'center') {
+                    item.geometry.center.moveTo(x, y);
+                } else if (role === 'radius') {
+                    item.geometry.radius = Math.max(item.geometry.center.distanceTo(new Point(x, y)), 1.0);
+                } else {
+                    item.geometry.center.moveTo(x, y);
+                }
             }
 
             return item;

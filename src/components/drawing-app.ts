@@ -4,7 +4,7 @@ import { Point } from 'ts-simple-2d-geometry';
 import './drawing-toolbar.ts';
 import './drawing-board';
 import { drawStore } from './drawing-store';
-import type { DrawState, Tool } from './drawing-types';
+import type {DrawState, PointRole, Tool} from './drawing-types';
 import { log } from '../utils/logger.js';
 
 @customElement('drawing-app')
@@ -86,8 +86,8 @@ export class DrawingApp extends LitElement {
         drawStore.deleteById(e.detail.id);
     }
 
-    private onStartDragging(e: CustomEvent<{ id: string }>): void {
-        drawStore.startDragging(e.detail.id);
+    private onStartDragging(e: CustomEvent<{ id: string, role?: PointRole }>): void {
+        drawStore.startDragging(e.detail.id, e.detail.role);
     }
 
     private onMoveSelectedTo(e: CustomEvent<{ point: Point }>): void {

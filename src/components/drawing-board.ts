@@ -1,7 +1,8 @@
 import { LitElement, css, html, svg } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { Circle, Line, Point } from 'ts-simple-2d-geometry';
-import type { Drawable, Tool } from './drawing-types';
+import type { Drawable, Tool, PointRole } from './drawing-types';
+import { POINT_EDIT_STYLE } from './drawing-types';
 
 @customElement('drawing-board')
 export class DrawingBoard extends LitElement {
@@ -160,14 +161,49 @@ export class DrawingBoard extends LitElement {
         this.emit('board-select-item', { id: item.id });
     }
 
-    private onItemPointerDown(item: Drawable, e: PointerEvent): void {
+    private onItemPointerDown(item: Drawable, e: PointerEvent, role: PointRole = 'all'): void {
         if (this.tool !== 'select') return;
         e.stopPropagation();
 
         const target = e.currentTarget as SVGElement;
         target.setPointerCapture(e.pointerId);
         this.pointerCapturedId = item.id;
-        this.emit('board-start-dragging', { id: item.id });
+        this.emit('board-start-dragging', { id: item.id, role });
+    }
+
+    private renderControlPoint(item: Drawable, role: PointRole, cx: number, cy: number) {
+        const halfSize = POINT_EDIT_STYLE.size / 2;
+        return svg`
+      <rect
+        data-item-id=${item.id}
+        x=${cx - halfSize}
+        y=${cy - halfSize}
+        width=${POINT_EDIT_STYLE.size}
+        height=${POINT_EDIT_STYLE.size}
+        fill=${POINT_EDIT_STYLE.fill}
+        stroke=${POINT_EDIT_STYLE.stroke}
+        stroke-width=${POINT_EDIT_STYLE.strokeWidth}
+        class="control-point"
+        @pointerdown=${(e: PointerEvent) => this.onItemPointerDown(item, e, role)}
+      ></rect>
+    `;
+    }
+
+    private renderControlPoints(item: Drawable) {
+        if (item.kind === 'line') {
+            return svg`
+        ${this.renderControlPoint(item, 'start', item.geometry.start.x, item.geometry.start.y)}
+        ${this.renderControlPoint(item, 'end', item.geometry.end.x, item.geometry.end.y)}
+      `;
+        } else if (item.kind === 'circle') {
+            return svg`
+        ${this.renderControlPoint(item, 'center', item.geometry.center.x, item.geometry.center.y)}
+        ${this.renderControlPoint(item, 'radius', item.geometry.center.x + item.geometry.radius, item.geometry.center.y)}
+      `;
+        } else if (item.kind === 'point') {
+            return this.renderControlPoint(item, 'center', item.geometry.x, item.geometry.y);
+        }
+        return null;
     }
 
     private renderPoint(item: Extract<Drawable, { kind: 'point' }>) {
@@ -175,18 +211,21 @@ export class DrawingBoard extends LitElement {
         const selected = this.selectedId === item.id;
 
         return svg`
-      <circle
-        data-item-id=${item.id}
-        class=${selected ? 'selected' : ''}
-        cx=${p.x}
-        cy=${p.y}
-        r=${item.style.pointRadius}
-        stroke=${item.style.stroke}
-        stroke-width=${0.3}
-        fill=${item.style.fill}
-        @click=${(e: MouseEvent) => this.onItemClick(item, e)}
-        @pointerdown=${(e: PointerEvent) => this.onItemPointerDown(item, e)}
-      ></circle>
+      <g>
+        <circle
+          data-item-id=${item.id}
+          class=${selected ? 'selected' : ''}
+          cx=${p.x}
+          cy=${p.y}
+          r=${item.style.pointRadius}
+          stroke=${item.style.stroke}
+          stroke-width=${0.3}
+          fill=${item.style.fill}
+          @click=${(e: MouseEvent) => this.onItemClick(item, e)}
+          @pointerdown=${(e: PointerEvent) => this.onItemPointerDown(item, e)}
+        ></circle>
+        ${selected ? this.renderControlPoints(item) : ''}
+      </g>
     `;
     }
 
@@ -195,18 +234,21 @@ export class DrawingBoard extends LitElement {
         const selected = this.selectedId === item.id;
 
         return svg`
-      <line
-        data-item-id=${item.id}
-        class=${selected ? 'selected' : ''}
-        x1=${l.start.x}
-        y1=${l.start.y}
-        x2=${l.end.x}
-        y2=${l.end.y}
-        stroke=${item.style.stroke}
-        stroke-width=${item.style.strokeWidth}
-        @click=${(e: MouseEvent) => this.onItemClick(item, e)}
-        @pointerdown=${(e: PointerEvent) => this.onItemPointerDown(item, e)}
-      ></line>
+      <g>
+        <line
+          data-item-id=${item.id}
+          class=${selected ? 'selected' : ''}
+          x1=${l.start.x}
+          y1=${l.start.y}
+          x2=${l.end.x}
+          y2=${l.end.y}
+          stroke=${item.style.stroke}
+          stroke-width=${item.style.strokeWidth}
+          @click=${(e: MouseEvent) => this.onItemClick(item, e)}
+          @pointerdown=${(e: PointerEvent) => this.onItemPointerDown(item, e)}
+        ></line>
+        ${selected ? this.renderControlPoints(item) : ''}
+      </g>
     `;
     }
 
@@ -215,18 +257,21 @@ export class DrawingBoard extends LitElement {
         const selected = this.selectedId === item.id;
 
         return svg`
-      <circle
-        data-item-id=${item.id}
-        class=${selected ? 'selected' : ''}
-        cx=${c.center.x}
-        cy=${c.center.y}
-        r=${c.radius}
-        stroke=${item.style.stroke}
-        stroke-width=${item.style.strokeWidth}
-        fill=${item.style.fill}
-        @click=${(e: MouseEvent) => this.onItemClick(item, e)}
-        @pointerdown=${(e: PointerEvent) => this.onItemPointerDown(item, e)}
-      ></circle>
+      <g>
+        <circle
+          data-item-id=${item.id}
+          class=${selected ? 'selected' : ''}
+          cx=${c.center.x}
+          cy=${c.center.y}
+          r=${c.radius}
+          stroke=${item.style.stroke}
+          stroke-width=${item.style.strokeWidth}
+          fill=${item.style.fill}
+          @click=${(e: MouseEvent) => this.onItemClick(item, e)}
+          @pointerdown=${(e: PointerEvent) => this.onItemPointerDown(item, e)}
+        ></circle>
+        ${selected ? this.renderControlPoints(item) : ''}
+      </g>
     `;
     }
 
