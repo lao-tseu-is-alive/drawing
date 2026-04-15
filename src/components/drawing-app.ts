@@ -118,6 +118,9 @@ export class DrawingApp extends LitElement {
           .draftCurrent=${this.state.draft.current}
           .width=${100}
           .height=${100}
+          .gridSize=${this.state.gridSize}
+          .showGrid=${this.state.showGrid}
+          .snapToGrid=${this.state.snapToGrid}
           @board-add-point=${this.onAddPoint}
           @board-begin-draft=${this.onBeginDraft}
           @board-update-draft=${this.onUpdateDraft}
@@ -134,6 +137,28 @@ export class DrawingApp extends LitElement {
           <div><strong>Tool:</strong> ${this.state.tool}</div>
           <div><strong>Items:</strong> ${this.state.items.length}</div>
           <div><strong>Selected:</strong> ${selected?.kind ?? 'none'}</div>
+
+          <h4>Grid Settings</h4>
+          <ul>
+            <li>
+              <label>
+                <input type="checkbox" ?checked=${this.state.showGrid} @change=${(e: Event) => drawStore.setShowGrid((e.target as HTMLInputElement).checked)}>
+                Show Grid
+              </label>
+            </li>
+            <li>
+              <label>
+                <input type="checkbox" ?checked=${this.state.snapToGrid} @change=${(e: Event) => drawStore.setSnapToGrid((e.target as HTMLInputElement).checked)}>
+                Snap to Grid
+              </label>
+            </li>
+            <li>
+              <label>
+                Grid Size:
+                <input type="number" .value=${this.state.gridSize.toString()} @change=${(e: Event) => drawStore.setGridSize(Number((e.target as HTMLInputElement).value))} min="1" max="100" style="width: 50px;">
+              </label>
+            </li>
+          </ul>
 
           <h4>How to use</h4>
           <ul>

@@ -19,9 +19,15 @@ export class DrawStore {
             {
                 id: makeId(),
                 kind: 'point',
-                geometry: new Point(20, 18, 'B'),
+                geometry: new Point(20, 20, 'B'),
                 style: { ...DEFAULT_STYLE, stroke: '#388e3c', fill: '#388e3c' },
             },
+            {
+                id: makeId(),
+                kind: 'circle',
+                geometry: new Circle(new Point(50,50,'Center'),20, 'Circle'),
+                style: { ...DEFAULT_STYLE, stroke: '#000022', fill: '#0000ff60' },
+            }
         ],
         selectedId: null,
         tool: 'select',
@@ -30,6 +36,9 @@ export class DrawStore {
             current: null,
         },
         draggingId: null,
+        gridSize: 10,
+        showGrid: true,
+        snapToGrid: true,
     };
 
     get state(): DrawState {
@@ -53,6 +62,21 @@ export class DrawStore {
             draft: { start: null, current: null },
             draggingId: null,
         };
+        this.notify();
+    }
+
+    setGridSize(size: number): void {
+        this._state = { ...this._state, gridSize: size };
+        this.notify();
+    }
+
+    setShowGrid(show: boolean): void {
+        this._state = { ...this._state, showGrid: show };
+        this.notify();
+    }
+
+    setSnapToGrid(snap: boolean): void {
+        this._state = { ...this._state, snapToGrid: snap };
         this.notify();
     }
 

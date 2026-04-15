@@ -24,7 +24,17 @@ export class DrawingBoard extends LitElement {
     width = 100;
 
     @property({ type: Number })
+    @property({ type: Number })
     height = 100;
+
+    @property({ type: Number })
+    gridSize = 10;
+
+    @property({ type: Boolean })
+    showGrid = true;
+
+    @property({ type: Boolean })
+    snapToGrid = true;
 
     @state()
     private pointerCapturedId: string | null = null;
@@ -41,15 +51,11 @@ export class DrawingBoard extends LitElement {
     }
 
     svg {
-      width: 900px;
-      height: 600px;
+      width: 500px;
+      height: 500px;
       display: block;
       cursor: crosshair;
       touch-action: none;
-      background:
-        linear-gradient(to right, #f3f3f3 1px, transparent 1px),
-        linear-gradient(to bottom, #f3f3f3 1px, transparent 1px);
-      background-size: 10% 10%;
     }
 
     .selected {
@@ -84,21 +90,31 @@ export class DrawingBoard extends LitElement {
         return new Point(p.x, p.y);
     }
 
+    private snap(p: Point): Point {
+        if (!this.snapToGrid) return p;
+        const size = Math.max(this.gridSize, 1);
+        const x = Math.round(p.x / size) * size;
+        const y = Math.round(p.y / size) * size;
+        return new Point(x, y);
+    }
+
     private onBoardClick(e: MouseEvent): void {
         const target = e.target as Element | null;
         const world = this.screenToWorld(e.clientX, e.clientY);
         if (!world) return;
 
+        const p = this.snap(world);
+
         if (target?.closest('[data-item-id]')) return;
 
         if (this.tool === 'point') {
-            this.emit('board-add-point', { point: world });
+            this.emit('board-add-point', { point: p });
             return;
         }
 
         if (this.tool === 'line' || this.tool === 'circle') {
             if (!this.draftStart) {
-                this.emit('board-begin-draft', { point: world });
+                this.emit('board-begin-draft', { point: p });
             } else {
                 this.emit('board-commit-draft', {});
             }
@@ -114,13 +130,15 @@ export class DrawingBoard extends LitElement {
         const world = this.screenToWorld(e.clientX, e.clientY);
         if (!world) return;
 
+        const p = this.snap(world);
+
         if (this.pointerCapturedId) {
-            this.emit('board-move-selected-to', { point: world });
+            this.emit('board-move-selected-to', { point: p });
             return;
         }
 
         if ((this.tool === 'line' || this.tool === 'circle') && this.draftStart) {
-            this.emit('board-update-draft', { point: world });
+            this.emit('board-update-draft', { point: p });
         }
     }
 
@@ -262,6 +280,12 @@ export class DrawingBoard extends LitElement {
           @pointerup=${this.onPointerUp}
           @pointercancel=${this.onPointerUp}
         >
+          <defs>
+            <pattern id="gridx" width=${this.gridSize} height=${this.gridSize} patternUnits="userSpaceOnUse">
+              <path d="M ${this.gridSize} 0 L 0 0 0 ${this.gridSize}" fill="none" stroke="#ececec" stroke-width="0.3"></path>
+            </pattern>
+          </defs>
+          ${this.showGrid ? svg`<rect x="-2000" y="-2000" width="5000" height="5000" fill="url(#gridx)"></rect>` : ''}
           ${this.items.map((item) => {
             switch (item.kind) {
                 case 'point':

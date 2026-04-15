@@ -43,6 +43,9 @@ export interface DrawState {
     tool: Tool;
     draft: DraftState;
     draggingId: string | null;
+    gridSize: number;
+    showGrid: boolean;
+    snapToGrid: boolean;
 }
 
 export const DEFAULT_STYLE: Style = {
