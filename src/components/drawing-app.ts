@@ -5,9 +5,10 @@ import './drawing-toolbar.ts';
 import './drawing-board';
 import { drawStore } from './drawing-store';
 import type { DrawState, Tool } from './drawing-types';
+import { log } from '../utils/logger.js';
 
 @customElement('drawing-app')
-export class CgilDrawApp extends LitElement {
+export class DrawingApp extends LitElement {
     @state()
     private state: DrawState = drawStore.state;
 
@@ -40,12 +41,14 @@ export class CgilDrawApp extends LitElement {
 
     override connectedCallback(): void {
         super.connectedCallback();
+        log.info('drawing-app connected');
         this.unsubscribe = drawStore.subscribe(() => {
             this.state = drawStore.state;
         });
     }
 
     override disconnectedCallback(): void {
+        log.info('drawing-app disconnected');
         this.unsubscribe?.();
         super.disconnectedCallback();
     }
@@ -99,15 +102,15 @@ export class CgilDrawApp extends LitElement {
         const selected = this.state.items.find((item) => item.id === this.state.selectedId) ?? null;
 
         return html`
-      <h2>cgil-draw starter with Bun + Lit + ts-simple-2d-geometry</h2>
+      <h2>drawing-board starter with Bun + Lit + ts-simple-2d-geometry</h2>
 
-      <cgil-toolbar
+      <drawing-toolbar
         .tool=${this.state.tool}
         @tool-change=${this.onToolChange}
-      ></cgil-toolbar>
+      ></drawing-toolbar>
 
       <div class="layout">
-        <cgil-draw-board
+        <drawing-board
           .items=${this.state.items}
           .tool=${this.state.tool}
           .selectedId=${this.state.selectedId}
@@ -125,7 +128,7 @@ export class CgilDrawApp extends LitElement {
           @board-start-dragging=${this.onStartDragging}
           @board-move-selected-to=${this.onMoveSelectedTo}
           @board-stop-dragging=${this.onStopDragging}
-        ></cgil-draw-board>
+        ></drawing-board>
 
         <div class="panel">
           <div><strong>Tool:</strong> ${this.state.tool}</div>

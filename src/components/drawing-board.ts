@@ -4,7 +4,7 @@ import { Circle, Line, Point } from 'ts-simple-2d-geometry';
 import type { Drawable, Tool } from './drawing-types';
 
 @customElement('drawing-board')
-export class CgilDrawBoard extends LitElement {
+export class DrawingBoard extends LitElement {
     @property({ attribute: false })
     items: Drawable[] = [];
 
@@ -230,9 +230,10 @@ export class CgilDrawBoard extends LitElement {
         }
 
         if (this.tool === 'circle') {
+            const radius = Math.max( Math.abs(this.draftStart.distanceTo(this.draftCurrent)), 1.0) ;
             const preview = new Circle(
                 this.draftStart.clone(),
-                this.draftStart.distanceTo(this.draftCurrent),
+                radius,
             );
 
             return svg`

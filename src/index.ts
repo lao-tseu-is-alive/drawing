@@ -16,4 +16,4 @@
 export * from './components/drawing-toolbar.js';
 export * from './components/drawing-board.js';
 export * from './components/drawing-store.js';
-export * from './components/app.js';
+export * from './components/drawing-app.js';

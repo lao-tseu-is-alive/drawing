@@ -1,6 +1,7 @@
 import { Circle, Line, Point } from 'ts-simple-2d-geometry';
 import type { DrawState, Drawable, Tool } from './drawing-types';
 import { DEFAULT_STYLE, makeId } from './drawing-types';
+import { log } from '../utils/logger.js';
 
 type Listener = () => void;
 
@@ -45,6 +46,7 @@ export class DrawStore {
     }
 
     setTool(tool: Tool): void {
+        log.info(`Tool changed to: ${tool}`);
         this._state = {
             ...this._state,
             tool,
@@ -55,11 +57,13 @@ export class DrawStore {
     }
 
     select(id: string | null): void {
+        log.debug(`Selected item: ${id}`);
         this._state = { ...this._state, selectedId: id };
         this.notify();
     }
 
     addPoint(x: number, y: number, name?: string): void {
+        log.info(`Adding point at (${x}, ${y})`, name);
         const point = new Point(x, y, name);
         const item: Drawable = {
             id: makeId(),
@@ -72,6 +76,7 @@ export class DrawStore {
     }
 
     addLine(start: Point, end: Point): void {
+        log.info(`Adding line from ${start} to ${end}`);
         const item: Drawable = {
             id: makeId(),
             kind: 'line',
@@ -84,6 +89,7 @@ export class DrawStore {
 
     addCircle(center: Point, edge: Point): void {
         const radius = center.distanceTo(edge);
+        log.info(`Adding circle center: ${center}, radius:${radius}`);
         const item: Drawable = {
             id: makeId(),
             kind: 'circle',
@@ -95,6 +101,7 @@ export class DrawStore {
     }
 
     deleteById(id: string): void {
+        log.warn(`Deleting item: ${id}`);
         this._state = {
             ...this._state,
             items: this._state.items.filter((item) => item.id !== id),
@@ -104,6 +111,7 @@ export class DrawStore {
     }
 
     beginDraft(at: Point): void {
+        log.trace('Begin draft', at);
         this._state = {
             ...this._state,
             draft: { start: at.clone(), current: at.clone() },

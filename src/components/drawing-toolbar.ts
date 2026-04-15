@@ -2,8 +2,8 @@ import { LitElement, css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import type { Tool } from './drawing-types';
 
-@customElement('cgil-toolbar')
-export class CgilToolbar extends LitElement {
+@customElement('drawing-toolbar')
+export class DrawingToolbar extends LitElement {
     @property({ type: String })
     tool: Tool = 'select';
 
