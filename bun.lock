@@ -6,7 +6,7 @@
       "name": "drawing",
       "dependencies": {
         "lit": "^3.3.2",
-        "ts-simple-2d-geometry": "^0.1.2",
+        "ts-simple-2d-geometry": "^0.2.0",
       },
       "devDependencies": {
         "@types/bun": "latest",
@@ -35,7 +35,7 @@
 
     "lit-html": ["lit-html@3.3.2", "", { "dependencies": { "@types/trusted-types": "^2.0.2" } }, "sha512-Qy9hU88zcmaxBXcc10ZpdK7cOLXvXpRoBxERdtqV9QOrfpMZZ6pSYP91LhpPtap3sFMUiL7Tw2RImbe0Al2/kw=="],
 
-    "ts-simple-2d-geometry": ["ts-simple-2d-geometry@0.1.2", "", { "peerDependencies": { "typescript": "^6.0.2" } }, "sha512-puizlYw+TD03jY3GLFgRCOlYoJpDLWzz94+zgRqAq+CEFwfvcuHV9F7y6mdSrOaRlS7lTF6jQc2WEs6/5tpeMw=="],
+    "ts-simple-2d-geometry": ["ts-simple-2d-geometry@0.2.0", "", { "peerDependencies": { "typescript": "^6.0.2" } }, "sha512-NbZgU0e+JqOEMyD6jPVelPrXxrueJYsl5xdOYtUtRZ4hGU4qVEuXfD9SZNSiwTlhc4BfrVMwCvjg3DkSPot2Sg=="],
 
     "typescript": ["typescript@6.0.2", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-bGdAIrZ0wiGDo5l8c++HWtbaNCWTS4UTv7RaTH/ThVIgjkveJt83m74bBHMJkuCbslY8ixgLBVZJIOiQlQTjfQ=="],
 

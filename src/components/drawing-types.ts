@@ -1,33 +1,26 @@
-import { Circle, Line, Point } from 'ts-simple-2d-geometry';
+import { Circle, Line, Point, type FeatureOptions } from 'ts-simple-2d-geometry';
 
 export type Tool = 'select' | 'point' | 'line' | 'circle' | 'delete';
-
-export interface Style {
-    stroke: string;
-    fill: string;
-    strokeWidth: number;
-    pointRadius: number;
-}
 
 export interface PointItem {
     id: string;
     kind: 'point';
     geometry: Point;
-    style: Style;
+    style: FeatureOptions;
 }
 
 export interface LineItem {
     id: string;
     kind: 'line';
     geometry: Line;
-    style: Style;
+    style: FeatureOptions;
 }
 
 export interface CircleItem {
     id: string;
     kind: 'circle';
     geometry: Circle;
-    style: Style;
+    style: FeatureOptions;
 }
 
 export type Drawable = PointItem | LineItem | CircleItem;
@@ -51,11 +44,14 @@ export interface DrawState {
     snapToGrid: boolean;
 }
 
-export const DEFAULT_STYLE: Style = {
+export const DEFAULT_STYLE: FeatureOptions = {
     stroke: '#1976d2',
-    fill: 'rgba(25,118,210,0.15)',
     strokeWidth: 1,
-    pointRadius: 1.2,
+    fill: 'rgba(25,118,210,0.15)',
+    opacity: 1.0,
+    pointRadius: 1.5,
+    isVisible: true,
+    zIndex: 0,
 };
 
 export const POINT_EDIT_STYLE = {

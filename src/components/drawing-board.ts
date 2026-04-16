@@ -1,8 +1,11 @@
 import { LitElement, css, html, svg } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { Circle, Line, Point } from 'ts-simple-2d-geometry';
+import { Circle, Line, Point, SVGRenderDriver } from 'ts-simple-2d-geometry';
+
 import type { Drawable, Tool, PointRole } from './drawing-types';
 import { POINT_EDIT_STYLE } from './drawing-types';
+import {LitRenderDriver} from "./LitRenderDriver.ts";
+import {log} from "../utils/logger.ts";
 
 @customElement('drawing-board')
 export class DrawingBoard extends LitElement {
@@ -205,73 +208,20 @@ export class DrawingBoard extends LitElement {
         }
         return null;
     }
-
-    private renderPoint(item: Extract<Drawable, { kind: 'point' }>) {
-        const p = item.geometry;
+    private renderItem(item: Drawable) {
+        const driver = new LitRenderDriver();
         const selected = this.selectedId === item.id;
 
+        const content = item.geometry.accept(driver, item.style, false);
+        log.info(`renderItem ${item.kind} : ${item.geometry.toString()}`)
         return svg`
-      <g>
-        <circle
-          data-item-id=${item.id}
-          class=${selected ? 'selected' : ''}
-          cx=${p.x}
-          cy=${p.y}
-          r=${item.style.pointRadius}
-          stroke=${item.style.stroke}
-          stroke-width=${0.3}
-          fill=${item.style.fill}
-          @click=${(e: MouseEvent) => this.onItemClick(item, e)}
-          @pointerdown=${(e: PointerEvent) => this.onItemPointerDown(item, e)}
-        ></circle>
-        ${selected ? this.renderControlPoints(item) : ''}
-      </g>
-    `;
-    }
-
-    private renderLine(item: Extract<Drawable, { kind: 'line' }>) {
-        const l = item.geometry;
-        const selected = this.selectedId === item.id;
-
-        return svg`
-      <g>
-        <line
-          data-item-id=${item.id}
-          class=${selected ? 'selected' : ''}
-          x1=${l.start.x}
-          y1=${l.start.y}
-          x2=${l.end.x}
-          y2=${l.end.y}
-          stroke=${item.style.stroke}
-          stroke-width=${item.style.strokeWidth}
-          @click=${(e: MouseEvent) => this.onItemClick(item, e)}
-          @pointerdown=${(e: PointerEvent) => this.onItemPointerDown(item, e)}
-        ></line>
-        ${selected ? this.renderControlPoints(item) : ''}
-      </g>
-    `;
-    }
-
-    private renderCircle(item: Extract<Drawable, { kind: 'circle' }>) {
-        const c = item.geometry;
-        const selected = this.selectedId === item.id;
-
-        return svg`
-      <g>
-        <circle
-          data-item-id=${item.id}
-          class=${selected ? 'selected' : ''}
-          cx=${c.center.x}
-          cy=${c.center.y}
-          r=${c.radius}
-          stroke=${item.style.stroke}
-          stroke-width=${item.style.strokeWidth}
-          fill=${item.style.fill}
-          @click=${(e: MouseEvent) => this.onItemClick(item, e)}
-          @pointerdown=${(e: PointerEvent) => this.onItemPointerDown(item, e)}
-        ></circle>
-        ${selected ? this.renderControlPoints(item) : ''}
-      </g>
+        <g 
+            class=${selected ? 'selected' : ''} 
+            @click=${(e: MouseEvent) => this.onItemClick(item, e)}
+            @pointerdown=${(e: PointerEvent) => this.onItemPointerDown(item, e)}>
+            ${content}
+            ${selected ? this.renderControlPoints(item) : ''}
+        </g>
     `;
     }
 
@@ -317,33 +267,25 @@ export class DrawingBoard extends LitElement {
 
     override render() {
         return html`
-      <div class="frame">
-        <svg
-          viewBox="0 0 ${this.width} ${this.height}"
-          @click=${this.onBoardClick}
-          @pointermove=${this.onBoardPointerMove}
-          @pointerup=${this.onPointerUp}
-          @pointercancel=${this.onPointerUp}
-        >
-          <defs>
-            <pattern id="gridx" width=${this.gridSize} height=${this.gridSize} patternUnits="userSpaceOnUse">
-              <path d="M ${this.gridSize} 0 L 0 0 0 ${this.gridSize}" fill="none" stroke="#ececec" stroke-width="0.3"></path>
-            </pattern>
-          </defs>
-          ${this.showGrid ? svg`<rect x="-2000" y="-2000" width="5000" height="5000" fill="url(#gridx)"></rect>` : ''}
-          ${this.items.map((item) => {
-            switch (item.kind) {
-                case 'point':
-                    return this.renderPoint(item);
-                case 'line':
-                    return this.renderLine(item);
-                case 'circle':
-                    return this.renderCircle(item);
-            }
-        })}
-          ${this.renderDraft()}
-        </svg>
-      </div>
-    `;
+          <div class="frame">
+            <svg
+                viewBox="0 0 ${this.width} ${this.height}"
+                @click=${this.onBoardClick}
+                @pointermove=${this.onBoardPointerMove}
+                @pointerup=${this.onPointerUp}
+                @pointercancel=${this.onPointerUp}
+            >
+              <defs>
+                <pattern id="gridx" width=${this.gridSize} height=${this.gridSize} patternUnits="userSpaceOnUse">
+                  <path d="M ${this.gridSize} 0 L 0 0 0 ${this.gridSize}" fill="none" stroke="#ececec"
+                        stroke-width="0.3"></path>
+                </pattern>
+              </defs>
+              ${this.showGrid ? svg`<rect x="-2000" y="-2000" width="5000" height="5000" fill="url(#gridx)"></rect>` : ''}
+              ${this.items.map((item) => this.renderItem(item))}
+              ${this.renderDraft()}
+            </svg>
+          </div>
+        `;
     }
 }

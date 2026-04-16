@@ -50,6 +50,6 @@
   },
   "dependencies": {
     "lit": "^3.3.2",
-    "ts-simple-2d-geometry": "^0.1.2"
+    "ts-simple-2d-geometry": "^0.2.0"
   }
 }

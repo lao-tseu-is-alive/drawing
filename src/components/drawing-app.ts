@@ -5,7 +5,7 @@ import './drawing-toolbar.ts';
 import './drawing-board';
 import { drawStore } from './drawing-store';
 import type {DrawState, PointRole, Tool} from './drawing-types';
-import { log } from '../utils/logger.js';
+import { log } from '../utils/logger';
 
 @customElement('drawing-app')
 export class DrawingApp extends LitElement {
