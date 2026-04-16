@@ -7,6 +7,43 @@ import { drawStore } from './drawing-store';
 import type {DrawState, PointRole, Tool} from './drawing-types';
 import { log } from '../utils/logger';
 
+function parseColorStr(str: string): { hex: string, a: number } {
+    if (!str || String(str).trim() === 'none' || String(str).trim() === 'transparent') {
+        return { hex: '#000000', a: 0 };
+    }
+    const s = String(str).trim();
+    if (s.startsWith('#')) {
+        let hex = s;
+        if (hex.length === 4) {
+            hex = '#' + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
+        }
+        if (hex.length === 9) {
+            const aHex = hex.substring(7, 9);
+            const a = parseInt(aHex, 16) / 255;
+            hex = hex.substring(0, 7);
+            return { hex, a };
+        }
+        return { hex: hex.substring(0, 7), a: 1 };
+    }
+    const m = s.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\s*\)/);
+    if (m) {
+        const r = parseInt(m[1] as string).toString(16).padStart(2, '0');
+        const g = parseInt(m[2] as string).toString(16).padStart(2, '0');
+        const b = parseInt(m[3] as string).toString(16).padStart(2, '0');
+        const a = m[4] !== undefined ? parseFloat(m[4] as string) : 1;
+        return { hex: `#${r}${g}${b}`, a };
+    }
+    return { hex: '#000000', a: 1 };
+}
+
+function toRgba(hex: string, a: number): string {
+    const cleanHex = hex.replace('#', '');
+    const r = parseInt(cleanHex.substring(0, 2), 16) || 0;
+    const g = parseInt(cleanHex.substring(2, 4), 16) || 0;
+    const b = parseInt(cleanHex.substring(4, 6), 16) || 0;
+    return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
+
 @customElement('drawing-app')
 export class DrawingApp extends LitElement {
     @state()
@@ -21,21 +58,53 @@ export class DrawingApp extends LitElement {
 
         .layout {
             display: grid;
-            grid-template-columns: 1fr 260px;
+            grid-template-columns: 1fr 280px;
             gap: 16px;
             align-items: start;
         }
 
         .panel {
+            min-width: 250px;
             border: 1px solid #ddd;
             border-radius: 8px;
             padding: 12px;
-            background: #fafafa;
+            background: #e8e5ef;
             font-size: 14px;
         }
 
         ul {
             padding-left: 18px;
+        }
+
+        fieldset {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            padding: 8px;
+        }
+
+        legend {
+            font-weight: 600;
+            font-size: 0.9em;
+            color: #555;
+            padding: 0 4px;
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .row label {
+            flex: 1;
+            font-size: 0.9em;
+        }
+
+        .row input[type="range"] {
+            flex: 1;
+            margin: 0 8px;
         }
     `;
 
@@ -154,6 +223,60 @@ export class DrawingApp extends LitElement {
               </label>
             </li>
           </ul>
+
+          <fieldset>
+            <legend>General Settings</legend>
+            <div class="row">
+              <label>Point Radius:</label>
+              <input type="number" .value=${this.state.currentStyle.pointRadius?.toString() || '1.5'} @change=${(e: Event) => drawStore.setGlobalPointRadius(Number((e.target as HTMLInputElement).value))} min="0.1" max="5" step="0.1" style="width: 60px;">
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Stroke Settings</legend>
+            <div class="row">
+              <label>Color:</label>
+              <input type="color" .value=${parseColorStr(this.state.currentStyle.stroke || '#000000').hex} @input=${(e: Event) => {
+                  const hex = (e.target as HTMLInputElement).value;
+                  const a = parseColorStr(this.state.currentStyle.stroke || '#000000').a;
+                  drawStore.setCurrentStyle({ stroke: toRgba(hex, a) });
+              }}>
+            </div>
+            <div class="row">
+              <label>Opacity:</label>
+              <input type="range" min="0.1" max="1" step="0.05" .value=${parseColorStr(this.state.currentStyle.stroke || '#000000').a.toString()} @input=${(e: Event) => {
+                  const a = parseFloat((e.target as HTMLInputElement).value);
+                  const hex = parseColorStr(this.state.currentStyle.stroke || '#000000').hex;
+                  drawStore.setCurrentStyle({ stroke: toRgba(hex, a) });
+              }}>
+              <span style="font-size:0.8em;width:30px;text-align:right">${parseColorStr(this.state.currentStyle.stroke || '#000000').a.toFixed(2)}</span>
+            </div>
+            <div class="row">
+              <label>Width:</label>
+              <input type="number" .value=${this.state.currentStyle.strokeWidth?.toString() || '1'} @change=${(e: Event) => drawStore.setCurrentStyle({ strokeWidth: Number((e.target as HTMLInputElement).value) })} min="0.1" step="0.1" style="width: 60px;">
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Fill Settings</legend>
+            <div class="row">
+              <label>Color:</label>
+              <input type="color" .value=${parseColorStr(this.state.currentStyle.fill || 'none').hex} @input=${(e: Event) => {
+                  const hex = (e.target as HTMLInputElement).value;
+                  const a = parseColorStr(this.state.currentStyle.fill || 'none').a;
+                  drawStore.setCurrentStyle({ fill: toRgba(hex, a) });
+              }}>
+            </div>
+            <div class="row">
+              <label>Opacity:</label>
+              <input type="range" min="0.1" max="1" step="0.05" .value=${parseColorStr(this.state.currentStyle.fill || 'none').a.toString()} @input=${(e: Event) => {
+                  const a = parseFloat((e.target as HTMLInputElement).value);
+                  const hex = parseColorStr(this.state.currentStyle.fill || 'none').hex;
+                  drawStore.setCurrentStyle({ fill: toRgba(hex, a) });
+              }}>
+              <span style="font-size:0.8em;width:30px;text-align:right">${parseColorStr(this.state.currentStyle.fill || 'none').a.toFixed(2)}</span>
+            </div>
+          </fieldset>
 
           <h4>How to use</h4>
           <ul>

@@ -1,4 +1,4 @@
-import { Circle, Line, Point, Triangle } from 'ts-simple-2d-geometry';
+import { Circle, Line, Point, Triangle, type FeatureOptions } from 'ts-simple-2d-geometry';
 import type {DrawState, Drawable, Tool, PointRole} from './drawing-types';
 import { DEFAULT_STYLE, makeId } from './drawing-types';
 import { log } from '../utils/logger.js';
@@ -40,6 +40,7 @@ export class DrawStore {
         gridSize: 10,
         showGrid: true,
         snapToGrid: true,
+        currentStyle: { ...DEFAULT_STYLE, stroke: '#000000', fill: 'rgba(10,10,250,0.5)' },
     };
 
     get state(): DrawState {
@@ -82,6 +83,26 @@ export class DrawStore {
         this.notify();
     }
 
+    setCurrentStyle(styleUpdate: Partial<FeatureOptions>): void {
+        this._state = {
+            ...this._state,
+            currentStyle: { ...this._state.currentStyle, ...styleUpdate },
+        };
+        this.notify();
+    }
+
+    setGlobalPointRadius(radius: number): void {
+        this._state = {
+            ...this._state,
+            currentStyle: { ...this._state.currentStyle, pointRadius: radius },
+            items: this._state.items.map((item) => ({
+                ...item,
+                style: { ...item.style, pointRadius: radius },
+            })),
+        };
+        this.notify();
+    }
+
     select(id: string | null): void {
         log.debug(`Selected item: ${id}`);
         this._state = { ...this._state, selectedId: id };
@@ -95,7 +116,7 @@ export class DrawStore {
             id: makeId(),
             kind: 'point',
             geometry: point,
-            style: { ...DEFAULT_STYLE, stroke: '#d32f2f', fill: '#d32f2f' },
+            style: { ...this._state.currentStyle },
         };
         this._state = { ...this._state, items: [...this._state.items, item] };
         this.notify();
@@ -107,7 +128,7 @@ export class DrawStore {
             id: makeId(),
             kind: 'line',
             geometry: new Line(start.clone(), end.clone()),
-            style: { ...DEFAULT_STYLE, stroke: '#6a1b9a', fill: 'none' },
+            style: { ...this._state.currentStyle },
         };
         this._state = { ...this._state, items: [...this._state.items, item] };
         this.notify();
@@ -120,7 +141,7 @@ export class DrawStore {
             id: makeId(),
             kind: 'circle',
             geometry: new Circle(center.clone(), radius),
-            style: { ...DEFAULT_STYLE, stroke: '#ef6c00', fill: 'rgba(239,108,0,0.1)' },
+            style: { ...this._state.currentStyle },
         };
         this._state = { ...this._state, items: [...this._state.items, item] };
         this.notify();
@@ -133,7 +154,7 @@ export class DrawStore {
                 id: makeId(),
                 kind: 'triangle',
                 geometry: new Triangle(pA.clone(), pB.clone(), pC.clone()),
-                style: { ...DEFAULT_STYLE, stroke: '#2e7d32', fill: 'rgba(46,125,50,0.1)' },
+                style: { ...this._state.currentStyle },
             };
             this._state = { ...this._state, items: [...this._state.items, item] };
         } catch(e) {

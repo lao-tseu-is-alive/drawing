@@ -49,6 +49,7 @@ export interface DrawState {
     gridSize: number;
     showGrid: boolean;
     snapToGrid: boolean;
+    currentStyle: FeatureOptions;
 }
 
 export const DEFAULT_STYLE: FeatureOptions = {
