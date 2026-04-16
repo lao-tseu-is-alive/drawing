@@ -62,16 +62,12 @@ export class DrawingApp extends LitElement {
         drawStore.addPoint(p.x, p.y, `P${this.state.items.length + 1}`);
     }
 
-    private onBeginDraft(e: CustomEvent<{ point: Point }>): void {
-        drawStore.beginDraft(e.detail.point);
+    private onDraftClick(e: CustomEvent<{ point: Point }>): void {
+        drawStore.addDraftPoint(e.detail.point);
     }
 
     private onUpdateDraft(e: CustomEvent<{ point: Point }>): void {
         drawStore.updateDraft(e.detail.point);
-    }
-
-    private onCommitDraft(): void {
-        drawStore.commitDraft();
     }
 
     private onSelectItem(e: CustomEvent<{ id: string }>): void {
@@ -114,7 +110,7 @@ export class DrawingApp extends LitElement {
           .items=${this.state.items}
           .tool=${this.state.tool}
           .selectedId=${this.state.selectedId}
-          .draftStart=${this.state.draft.start}
+          .draftPoints=${this.state.draft.points}
           .draftCurrent=${this.state.draft.current}
           .width=${100}
           .height=${100}
@@ -122,9 +118,8 @@ export class DrawingApp extends LitElement {
           .showGrid=${this.state.showGrid}
           .snapToGrid=${this.state.snapToGrid}
           @board-add-point=${this.onAddPoint}
-          @board-begin-draft=${this.onBeginDraft}
+          @board-draft-click=${this.onDraftClick}
           @board-update-draft=${this.onUpdateDraft}
-          @board-commit-draft=${this.onCommitDraft}
           @board-select-item=${this.onSelectItem}
           @board-select-none=${this.onSelectNone}
           @board-delete-item=${this.onDeleteItem}
@@ -165,6 +160,7 @@ export class DrawingApp extends LitElement {
             <li><strong>point</strong>: click to add a point</li>
             <li><strong>line</strong>: click start, move, click end</li>
             <li><strong>circle</strong>: click center, move, click edge</li>
+            <li><strong>triangle</strong>: click three times for the three points</li>
             <li><strong>select</strong>: click to select, drag to move</li>
             <li><strong>delete</strong>: click an item to delete it</li>
           </ul>

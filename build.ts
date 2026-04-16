@@ -10,7 +10,7 @@ const fileName = rawName.replace(/-([a-z])/g, (_match, letter) => {
 });
 console.log(`🐰 🏗️  Building ${fileName} v${version}...`);
 
-const outputDir = "./dist";
+const outputDir = "./dist-lib";
 console.log(`🐰 🧹 Cleanup of old ${outputDir} content...`);
 await $`rm -rf ${outputDir}`;
 

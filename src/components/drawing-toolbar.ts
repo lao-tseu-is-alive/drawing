@@ -34,7 +34,7 @@ export class DrawingToolbar extends LitElement {
     }
 
     override render() {
-        const tools: Tool[] = ['select', 'point', 'line', 'circle', 'delete'];
+        const tools: Tool[] = ['select', 'point', 'line', 'circle', 'triangle', 'delete'];
 
         return html`
       <div class="bar">

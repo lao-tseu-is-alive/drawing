@@ -1,6 +1,6 @@
 {
   "name": "drawing",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A basic user interface with bun & lit to test simple-2d-geometry ",
   "private": false,
   "type": "module",
@@ -21,7 +21,9 @@
   },
   "scripts": {
     "dev": "bun index.html",
-    "build": "bun run build.ts",
+    "build": "bun build ./index.html --outdir=dist --minify",
+    "build:inline": "bun build --compile ./index.html --outdir=dist --minify",
+    "build:lib": "bun run build.ts",
     "check": "bun x tsc --noEmit",
     "test": "bun test",
     "test:watch": "bun test --watch",

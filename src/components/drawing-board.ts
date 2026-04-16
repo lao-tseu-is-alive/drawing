@@ -1,6 +1,6 @@
 import { LitElement, css, html, svg } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { Circle, Line, Point, SVGRenderDriver } from 'ts-simple-2d-geometry';
+import { Circle, Point } from 'ts-simple-2d-geometry';
 
 import type { Drawable, Tool, PointRole } from './drawing-types';
 import { POINT_EDIT_STYLE } from './drawing-types';
@@ -19,7 +19,7 @@ export class DrawingBoard extends LitElement {
     selectedId: string | null = null;
 
     @property({ attribute: false })
-    draftStart: Point | null = null;
+    draftPoints: Point[] = [];
 
     @property({ attribute: false })
     draftCurrent: Point | null = null;
@@ -116,12 +116,8 @@ export class DrawingBoard extends LitElement {
             return;
         }
 
-        if (this.tool === 'line' || this.tool === 'circle') {
-            if (!this.draftStart) {
-                this.emit('board-begin-draft', { point: p });
-            } else {
-                this.emit('board-commit-draft', {});
-            }
+        if (this.tool === 'line' || this.tool === 'circle' || this.tool === 'triangle') {
+            this.emit('board-draft-click', { point: p });
             return;
         }
 
@@ -141,7 +137,7 @@ export class DrawingBoard extends LitElement {
             return;
         }
 
-        if ((this.tool === 'line' || this.tool === 'circle') && this.draftStart) {
+        if ((this.tool === 'line' || this.tool === 'circle' || this.tool === 'triangle') && this.draftPoints.length > 0) {
             this.emit('board-update-draft', { point: p });
         }
     }
@@ -205,6 +201,12 @@ export class DrawingBoard extends LitElement {
       `;
         } else if (item.kind === 'point') {
             return this.renderControlPoint(item, 'center', item.geometry.x, item.geometry.y);
+        } else if (item.kind === 'triangle') {
+            return svg`
+        ${this.renderControlPoint(item, 'pA', item.geometry.pA.x, item.geometry.pA.y)}
+        ${this.renderControlPoint(item, 'pB', item.geometry.pB.x, item.geometry.pB.y)}
+        ${this.renderControlPoint(item, 'pC', item.geometry.pC.x, item.geometry.pC.y)}
+      `;
         }
         return null;
     }
@@ -226,16 +228,21 @@ export class DrawingBoard extends LitElement {
     }
 
     private renderDraft() {
-        if (!this.draftStart || !this.draftCurrent) return null;
+        if (this.draftPoints.length === 0 || !this.draftCurrent) return null;
+
+        const pts = this.draftPoints;
+        const pt1 = pts[0]
+        if (pt1 === undefined) return null;
+        const current = this.draftCurrent;
 
         if (this.tool === 'line') {
             return svg`
         <line
           class="draft"
-          x1=${this.draftStart.x}
-          y1=${this.draftStart.y}
-          x2=${this.draftCurrent.x}
-          y2=${this.draftCurrent.y}
+          x1=${pt1.x}
+          y1=${pt1.y}
+          x2=${current.x}
+          y2=${current.y}
           stroke="#555"
           stroke-width="0.6"
         ></line>
@@ -243,11 +250,8 @@ export class DrawingBoard extends LitElement {
         }
 
         if (this.tool === 'circle') {
-            const radius = Math.max( Math.abs(this.draftStart.distanceTo(this.draftCurrent)), 1.0) ;
-            const preview = new Circle(
-                this.draftStart.clone(),
-                radius,
-            );
+            const radius = Math.max( Math.abs(pt1.distanceTo(current)), 1.0) ;
+            const preview = new Circle(pt1.clone(), radius);
 
             return svg`
         <circle
@@ -260,6 +264,39 @@ export class DrawingBoard extends LitElement {
           fill="rgba(0,0,0,0.04)"
         ></circle>
       `;
+        }
+
+        if (this.tool === 'triangle') {
+            let pointsStr = '';
+            if (pts.length === 1) {
+                return svg`
+                  <line
+                    class="draft"
+                    x1=${pt1.x}
+                    y1=${pt1.y}
+                    x2=${current.x}
+                    y2=${current.y}
+                    stroke="#555"
+                    stroke-width="0.6"
+                  ></line>
+                `;
+            } else if (pts.length === 2) {
+                const pt2 = pts[1]
+                if (pt2 === undefined) return null;
+                pointsStr = `${pt1.x},${pt1.y} ${pt2.x},${pt2.y} ${current.x},${current.y}`;
+            }
+
+            if (pointsStr) {
+                return svg`
+                  <polygon
+                    class="draft"
+                    points=${pointsStr}
+                    stroke="#555"
+                    stroke-width="0.6"
+                    fill="rgba(0,0,0,0.04)"
+                  ></polygon>
+                `;
+            }
         }
 
         return null;

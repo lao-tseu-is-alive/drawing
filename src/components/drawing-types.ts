@@ -1,6 +1,6 @@
-import { Circle, Line, Point, type FeatureOptions } from 'ts-simple-2d-geometry';
+import { Circle, Line, Point, Triangle, type FeatureOptions } from 'ts-simple-2d-geometry';
 
-export type Tool = 'select' | 'point' | 'line' | 'circle' | 'delete';
+export type Tool = 'select' | 'point' | 'line' | 'circle' | 'triangle' | 'delete';
 
 export interface PointItem {
     id: string;
@@ -23,14 +23,21 @@ export interface CircleItem {
     style: FeatureOptions;
 }
 
-export type Drawable = PointItem | LineItem | CircleItem;
+export interface TriangleItem {
+    id: string;
+    kind: 'triangle';
+    geometry: Triangle;
+    style: FeatureOptions;
+}
+
+export type Drawable = PointItem | LineItem | CircleItem | TriangleItem;
 
 export interface DraftState {
-    start: Point | null;
+    points: Point[];
     current: Point | null;
 }
 
-export type PointRole = 'start' | 'end' | 'center' | 'radius' | 'all';
+export type PointRole = 'start' | 'end' | 'center' | 'radius' | 'pA' | 'pB' | 'pC' | 'all';
 
 export interface DrawState {
     items: Drawable[];

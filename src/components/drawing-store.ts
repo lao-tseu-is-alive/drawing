@@ -1,4 +1,4 @@
-import { Circle, Line, Point } from 'ts-simple-2d-geometry';
+import { Circle, Line, Point, Triangle } from 'ts-simple-2d-geometry';
 import type {DrawState, Drawable, Tool, PointRole} from './drawing-types';
 import { DEFAULT_STYLE, makeId } from './drawing-types';
 import { log } from '../utils/logger.js';
@@ -32,7 +32,7 @@ export class DrawStore {
         selectedId: null,
         tool: 'select',
         draft: {
-            start: null,
+            points: [],
             current: null,
         },
         draggingId: null,
@@ -60,7 +60,7 @@ export class DrawStore {
         this._state = {
             ...this._state,
             tool,
-            draft: { start: null, current: null },
+            draft: { points: [], current: null },
             draggingId: null,
             draggingPointRole: null,
         };
@@ -126,6 +126,22 @@ export class DrawStore {
         this.notify();
     }
 
+    addTriangle(pA: Point, pB: Point, pC: Point): void {
+        log.info(`Adding triangle from ${pA}, ${pB}, ${pC}`);
+        try {
+            const item: Drawable = {
+                id: makeId(),
+                kind: 'triangle',
+                geometry: new Triangle(pA.clone(), pB.clone(), pC.clone()),
+                style: { ...DEFAULT_STYLE, stroke: '#2e7d32', fill: 'rgba(46,125,50,0.1)' },
+            };
+            this._state = { ...this._state, items: [...this._state.items, item] };
+        } catch(e) {
+            log.error('Could not create triangle (collinear points?)', e);
+        }
+        this.notify();
+    }
+
     deleteById(id: string): void {
         log.warn(`Deleting item: ${id}`);
         this._state = {
@@ -136,17 +152,31 @@ export class DrawStore {
         this.notify();
     }
 
-    beginDraft(at: Point): void {
-        log.trace('Begin draft', at);
-        this._state = {
-            ...this._state,
-            draft: { start: at.clone(), current: at.clone() },
-        };
+    addDraftPoint(at: Point): void {
+        const { tool, draft } = this._state;
+        const newPoints = [...draft.points, at.clone()];
+
+        if (tool === 'line' || tool === 'circle') {
+            if (newPoints.length >= 2) {
+                if (tool === 'line') this.addLine(newPoints[0]!, newPoints[1]!);
+                if (tool === 'circle') this.addCircle(newPoints[0]!, newPoints[1]!);
+                this._state = { ...this._state, draft: { points: [], current: null } };
+            } else {
+                this._state = { ...this._state, draft: { points: newPoints, current: at.clone() } };
+            }
+        } else if (tool === 'triangle') {
+            if (newPoints.length >= 3) {
+                this.addTriangle(newPoints[0]!, newPoints[1]!, newPoints[2]!);
+                this._state = { ...this._state, draft: { points: [], current: null } };
+            } else {
+                this._state = { ...this._state, draft: { points: newPoints, current: at.clone() } };
+            }
+        }
         this.notify();
     }
 
     updateDraft(at: Point): void {
-        if (!this._state.draft.start) return;
+        if (this._state.draft.points.length === 0) return;
         this._state = {
             ...this._state,
             draft: { ...this._state.draft, current: at.clone() },
@@ -154,27 +184,10 @@ export class DrawStore {
         this.notify();
     }
 
-    commitDraft(): void {
-        const { tool, draft } = this._state;
-        if (!draft.start || !draft.current) return;
-
-        if (tool === 'line') {
-            this.addLine(draft.start, draft.current);
-        } else if (tool === 'circle') {
-            this.addCircle(draft.start, draft.current);
-        }
-
-        this._state = {
-            ...this._state,
-            draft: { start: null, current: null },
-        };
-        this.notify();
-    }
-
     cancelDraft(): void {
         this._state = {
             ...this._state,
-            draft: { start: null, current: null },
+            draft: { points: [], current: null },
         };
         this.notify();
     }
@@ -218,6 +231,22 @@ export class DrawStore {
                     item.geometry.radius = Math.max(item.geometry.center.distanceTo(new Point(x, y)), 1.0);
                 } else {
                     item.geometry.center.moveTo(x, y);
+                }
+            } else if (item.kind === 'triangle') {
+                if (role === 'pA') {
+                    item.geometry.pA.moveTo(x, y);
+                } else if (role === 'pB') {
+                    item.geometry.pB.moveTo(x, y);
+                } else if (role === 'pC') {
+                    item.geometry.pC.moveTo(x, y);
+                } else {
+                    // Si un tel rôle arrivait on déplacerait tout
+                    const [x1, y1] = item.geometry.pA.toArray();
+                    const dx = x - x1;
+                    const dy = y - y1;
+                    item.geometry.pA.moveRel(dx, dy);
+                    item.geometry.pB.moveRel(dx, dy);
+                    item.geometry.pC.moveRel(dx, dy);
                 }
             }
 
