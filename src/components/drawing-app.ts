@@ -15,29 +15,29 @@ export class DrawingApp extends LitElement {
     private unsubscribe?: () => void;
 
     static override styles = css`
-    :host {
-      display: block;
-    }
+        :host {
+            display: block;
+        }
 
-    .layout {
-      display: grid;
-      grid-template-columns: 1fr 260px;
-      gap: 16px;
-      align-items: start;
-    }
+        .layout {
+            display: grid;
+            grid-template-columns: 1fr 260px;
+            gap: 16px;
+            align-items: start;
+        }
 
-    .panel {
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 12px;
-      background: #fafafa;
-      font-size: 14px;
-    }
+        .panel {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            background: #fafafa;
+            font-size: 14px;
+        }
 
-    ul {
-      padding-left: 18px;
-    }
-  `;
+        ul {
+            padding-left: 18px;
+        }
+    `;
 
     override connectedCallback(): void {
         super.connectedCallback();

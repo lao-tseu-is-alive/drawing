@@ -22,6 +22,7 @@
   "scripts": {
     "dev": "bun index.html",
     "build": "bun build ./index.html --outdir=dist --minify",
+    "prebuild": "rm -rd dist/*",
     "build:inline": "bun build --compile ./index.html --outdir=dist --minify",
     "build:lib": "bun run build.ts",
     "check": "bun x tsc --noEmit",

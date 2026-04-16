@@ -37,7 +37,7 @@
 
     // Required for Lit decorators (@customElement, @state, @property).
     // useDefineForClassFields: false is critical — without it, TypeScript's class field
-    // initialisation overwrites the decorator-applied property descriptors that Lit relies on.
+    // initialization overwrites the decorator-applied property descriptors that Lit relies on.
     "experimentalDecorators": true,
     "useDefineForClassFields": false
   },
