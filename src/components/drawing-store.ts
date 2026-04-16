@@ -61,6 +61,7 @@ export class DrawStore {
         this._state = {
             ...this._state,
             tool,
+            selectedId: null,
             draft: { points: [], current: null },
             draggingId: null,
             draggingPointRole: null,
@@ -87,6 +88,18 @@ export class DrawStore {
         this._state = {
             ...this._state,
             currentStyle: { ...this._state.currentStyle, ...styleUpdate },
+        };
+        this.notify();
+    }
+
+    updateSelectedStyle(styleUpdate: Partial<FeatureOptions>): void {
+        const id = this._state.selectedId;
+        if (!id) return;
+        this._state = {
+            ...this._state,
+            items: this._state.items.map((item) =>
+                item.id === id ? { ...item, style: { ...item.style, ...styleUpdate } } : item
+            ),
         };
         this.notify();
     }

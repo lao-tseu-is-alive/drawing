@@ -1,6 +1,6 @@
 import { LitElement, css, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { Point } from 'ts-simple-2d-geometry';
+import { Point, type FeatureOptions } from 'ts-simple-2d-geometry';
 import './drawing-toolbar.ts';
 import './drawing-board';
 import { drawStore } from './drawing-store';
@@ -165,6 +165,15 @@ export class DrawingApp extends LitElement {
 
     override render() {
         const selected = this.state.items.find((item) => item.id === this.state.selectedId) ?? null;
+        const activeStyle = selected ? selected.style : this.state.currentStyle;
+
+        const handleStyleChange = (styleUpdate: Partial<FeatureOptions>) => {
+            if (selected) {
+                drawStore.updateSelectedStyle(styleUpdate);
+            } else {
+                drawStore.setCurrentStyle(styleUpdate);
+            }
+        };
 
         return html`
       <h2>drawing-board starter with Bun + Lit + ts-simple-2d-geometry</h2>
@@ -233,48 +242,48 @@ export class DrawingApp extends LitElement {
           </fieldset>
 
           <fieldset>
-            <legend>Stroke Settings</legend>
+            <legend>Stroke Settings ${selected ? '(Selected)' : ''}</legend>
             <div class="row">
               <label>Color:</label>
-              <input type="color" .value=${parseColorStr(this.state.currentStyle.stroke || '#000000').hex} @input=${(e: Event) => {
+              <input type="color" .value=${parseColorStr(activeStyle.stroke || '#000000').hex} @input=${(e: Event) => {
                   const hex = (e.target as HTMLInputElement).value;
-                  const a = parseColorStr(this.state.currentStyle.stroke || '#000000').a;
-                  drawStore.setCurrentStyle({ stroke: toRgba(hex, a) });
+                  const a = parseColorStr(activeStyle.stroke || '#000000').a;
+                  handleStyleChange({ stroke: toRgba(hex, a) });
               }}>
             </div>
             <div class="row">
               <label>Opacity:</label>
-              <input type="range" min="0.1" max="1" step="0.05" .value=${parseColorStr(this.state.currentStyle.stroke || '#000000').a.toString()} @input=${(e: Event) => {
+              <input type="range" min="0" max="1" step="0.05" .value=${parseColorStr(activeStyle.stroke || '#000000').a.toString()} @input=${(e: Event) => {
                   const a = parseFloat((e.target as HTMLInputElement).value);
-                  const hex = parseColorStr(this.state.currentStyle.stroke || '#000000').hex;
-                  drawStore.setCurrentStyle({ stroke: toRgba(hex, a) });
+                  const hex = parseColorStr(activeStyle.stroke || '#000000').hex;
+                  handleStyleChange({ stroke: toRgba(hex, a) });
               }}>
-              <span style="font-size:0.8em;width:30px;text-align:right">${parseColorStr(this.state.currentStyle.stroke || '#000000').a.toFixed(2)}</span>
+              <span style="font-size:0.8em;width:30px;text-align:right">${parseColorStr(activeStyle.stroke || '#000000').a.toFixed(2)}</span>
             </div>
             <div class="row">
               <label>Width:</label>
-              <input type="number" .value=${this.state.currentStyle.strokeWidth?.toString() || '1'} @change=${(e: Event) => drawStore.setCurrentStyle({ strokeWidth: Number((e.target as HTMLInputElement).value) })} min="0.1" step="0.1" style="width: 60px;">
+              <input type="number" .value=${activeStyle.strokeWidth?.toString() || '1'} @change=${(e: Event) => handleStyleChange({ strokeWidth: Number((e.target as HTMLInputElement).value) })} min="0.1" step="0.1" style="width: 60px;">
             </div>
           </fieldset>
 
           <fieldset>
-            <legend>Fill Settings</legend>
+            <legend>Fill Settings ${selected ? '(Selected)' : ''}</legend>
             <div class="row">
               <label>Color:</label>
-              <input type="color" .value=${parseColorStr(this.state.currentStyle.fill || 'none').hex} @input=${(e: Event) => {
+              <input type="color" .value=${parseColorStr(activeStyle.fill || 'none').hex} @input=${(e: Event) => {
                   const hex = (e.target as HTMLInputElement).value;
-                  const a = parseColorStr(this.state.currentStyle.fill || 'none').a;
-                  drawStore.setCurrentStyle({ fill: toRgba(hex, a) });
+                  const a = parseColorStr(activeStyle.fill || 'none').a;
+                  handleStyleChange({ fill: toRgba(hex, a) });
               }}>
             </div>
             <div class="row">
               <label>Opacity:</label>
-              <input type="range" min="0.1" max="1" step="0.05" .value=${parseColorStr(this.state.currentStyle.fill || 'none').a.toString()} @input=${(e: Event) => {
+              <input type="range" min="0" max="1" step="0.05" .value=${parseColorStr(activeStyle.fill || 'none').a.toString()} @input=${(e: Event) => {
                   const a = parseFloat((e.target as HTMLInputElement).value);
-                  const hex = parseColorStr(this.state.currentStyle.fill || 'none').hex;
-                  drawStore.setCurrentStyle({ fill: toRgba(hex, a) });
+                  const hex = parseColorStr(activeStyle.fill || 'none').hex;
+                  handleStyleChange({ fill: toRgba(hex, a) });
               }}>
-              <span style="font-size:0.8em;width:30px;text-align:right">${parseColorStr(this.state.currentStyle.fill || 'none').a.toFixed(2)}</span>
+              <span style="font-size:0.8em;width:30px;text-align:right">${parseColorStr(activeStyle.fill || 'none').a.toFixed(2)}</span>
             </div>
           </fieldset>
 
