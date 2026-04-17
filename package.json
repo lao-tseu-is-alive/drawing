@@ -1,6 +1,6 @@
 {
   "name": "drawing",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A basic user interface with bun & lit to test simple-2d-geometry ",
   "private": false,
   "type": "module",
@@ -53,6 +53,6 @@
   },
   "dependencies": {
     "lit": "^3.3.2",
-    "ts-simple-2d-geometry": "^0.2.0"
+    "ts-simple-2d-geometry": "^0.2.2"
   }
 }

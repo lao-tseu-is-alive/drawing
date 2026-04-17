@@ -1,10 +1,9 @@
 import { LitElement, css, html, svg } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { Circle, Point } from 'ts-simple-2d-geometry';
+import { Circle, Point, LitRenderDriver } from 'ts-simple-2d-geometry';
 
 import type { Drawable, Tool, PointRole } from './drawing-types';
 import { POINT_EDIT_STYLE } from './drawing-types';
-import {LitRenderDriver} from "./LitRenderDriver.ts";
 import {log} from "../utils/logger.ts";
 
 @customElement('drawing-board')
